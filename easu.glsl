@@ -2,7 +2,6 @@
 #pragma optionNV (unroll all)	
 #define LOCAL_GROUP_SIZE 32
 
-layout(local_size_x = LOCAL_GROUP_SIZE, local_size_y = LOCAL_GROUP_SIZE) in;
 layout(rgba32f, binding = 0) uniform writeonly image2D u_OutputEASUTexture;
 
 uniform sampler2D u_InputTexture;
@@ -195,6 +194,7 @@ vec3 fsrEasuF(ivec2 ip)
 
 void main()
 {
+	uvec2 gl_GlobalInvocationID = gl_WorkGroupID * gl_WorkGroupSize + gl_LocalInvocationID;
 	ivec2 FragPos = ivec2(gl_GlobalInvocationID.xy);
 	imageStore(u_OutputEASUTexture, FragPos, vec4(fsrEasuF(FragPos), 1));
 }

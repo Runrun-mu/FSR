@@ -99,7 +99,7 @@ int main(){
     /*init*/
     glfwInit();
     //glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     //glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     GLFWwindow* window = glfwCreateWindow(800, 600, "", nullptr, nullptr);
@@ -231,16 +231,18 @@ int main(){
     glUniform4fv(con3Loc, 1, glm::value_ptr(Con3));
     GLuint outputTex;
     glGenTextures(1, &outputTex);
-    glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, outputTex);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, outputWidth, outputHeight, 0, GL_RGBA, GL_FLOAT, nullptr);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glBindImageTexture(0, outputTex, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA32F);
+
     //glBindTexture(GL_TEXTURE_2D, 0);
     //glBindImageTexture(0, outputTex, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA32F);
     GLint outputTexLoc = glGetUniformLocation(program1, "u_OutputEASUTexture");
-    glUniform1i(outputTexLoc, 1);
+    glUniform1i(outputTexLoc, 0);
     GLuint framebuffer;
+    
     glGenFramebuffers(1, &framebuffer);
     glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, outputTex, 0);
