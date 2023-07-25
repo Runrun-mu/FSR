@@ -9,6 +9,6 @@ include_directories( ${OPENGL_INCLUDE_DIRS}  ${GLUT_INCLUDE_DIRS})
 include_directories( ${GLEW_INCLUDE_DIRS})
 include_directories(${PROJECT_SOURCE_DIR}/external)
 
-add_executable(fsr glad.c main.cpp) 
+add_executable(fsr glad.c test.cpp) 
 
 target_link_libraries(fsr ${OPENGL_LIBRARIES} ${GLUT_LIBRARY} glfw dl)

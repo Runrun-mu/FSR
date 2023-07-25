@@ -1,8 +1,13 @@
 #version 430 core
 #pragma optionNV (unroll all)	
+#extension GL_ARB_compute_shader: enable
+#extension GL_ARB_shader_image_load_store: enable
 #define LOCAL_GROUP_SIZE 32
 
+layout(local_size_x = LOCAL_GROUP_SIZE, local_size_y = LOCAL_GROUP_SIZE) in;
 layout(rgba32f, binding = 0) uniform writeonly image2D u_OutputEASUTexture;
+layout(rgba32f, binding = 1) uniform writeonly image2D u_testTexture;
+layout(rgba32f, binding = 2) uniform readonly image2D u_InputImage;
 
 uniform sampler2D u_InputTexture;
 uniform int u_DisplayWidth;
@@ -27,8 +32,9 @@ void fsrEasuTapF(
 	vec2 Len, // Length.
 	float w, // Negative lobe strength.
 	float Clp, // Clipping point.
-	vec3 Color) { // Tap color.
-	//公式15
+	vec3 Color)
+{ // Tap color.
+//公式15
 	vec2 v;
 	v.x = (Off.x * (Dir.x)) + (Off.y * Dir.y);
 	v.y = (Off.x * (-Dir.y)) + (Off.y * Dir.x);
@@ -56,7 +62,8 @@ void fsrEasuSetF(
 	inout float Feature,
 	vec2 P,
 	bool BoolS, bool BoolT, bool BoolU, bool BoolV,
-	float LumaA, float LumaB, float LumaC, float LumaD, float LumaE) {
+	float LumaA, float LumaB, float LumaC, float LumaD, float LumaE)
+{
 	//  s t
 	//  u v
 	float Weight = 0.0f;
@@ -164,7 +171,7 @@ vec3 fsrEasuF(ivec2 ip)
 
 	//公式11
 	float w = 0.5f - 0.25f * Feature;
-	
+
 	//公式12
 	float Clp = 1.0f / w;
 
@@ -189,12 +196,25 @@ vec3 fsrEasuF(ivec2 ip)
 	fsrEasuTapF(aC, aW, vec2(0.0, 2.0) - P, Dir, Len, w, Clp, vec3(zzonR.w, zzonG.w, zzonB.w)); // n
   //------------------------------------------------------------------------------------------------------------------------------
 	// Normalize and dering.
-	return min(Max4, max(Min4, aC / aW));
+	return (min(Max4, max(Min4, aC / aW)));
+}
+
+vec4 test(ivec2 ip){
+	vec2 P = vec2(ip) * u_Con0.xy + u_Con0.zw;
+	vec2 F = floor(P);
+	P -= F;
+	vec2 P0 = F * u_Con1.xy + u_Con1.zw;
+	vec2 P1 = P0 + u_Con2.xy;
+	vec2 P2 = P0 + u_Con2.zw;
+	vec2 P3 = P0 + u_Con3.xy;
+	vec4 bczzR = fsrEasuRF(P0);
+	return bczzR;
 }
 
 void main()
 {
-	uvec2 gl_GlobalInvocationID = gl_WorkGroupID * gl_WorkGroupSize + gl_LocalInvocationID;
 	ivec2 FragPos = ivec2(gl_GlobalInvocationID.xy);
-	imageStore(u_OutputEASUTexture, FragPos, vec4(fsrEasuF(FragPos), 1));
+	vec4 pixelValue = imageLoad(u_InputImage, FragPos);
+	imageStore(u_testTexture, FragPos, pixelValue);  // 假设你已经定义了一个用于调试的纹理debugTexture
+	imageStore(u_OutputEASUTexture, FragPos, test(FragPos));
 }

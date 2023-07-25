@@ -92,8 +92,7 @@ GLuint createFullScreenQuad() {
     glBindVertexArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-    return vao;
-}
+    return vao;}
 
 int main(){
     /*init*/
@@ -137,8 +136,7 @@ int main(){
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR); // Linear interpolation when magnifying
-    glBindTexture(GL_TEXTURE_2D, 0);
-    stbi_image_free(data);
+
     /*
     GLubyte* pixels1 = new GLubyte[width * height * 3]; // width and height of your texture
     glBindTexture(GL_TEXTURE_2D, texture);
@@ -148,6 +146,7 @@ int main(){
     {
         std::cerr<< "Red: " << static_cast<int>(pixels1[i]) << " Green: " << static_cast<int>(pixels1[i+1]) << " Blue: " << static_cast<int>(pixels1[i+2]) << std::endl;
     }*/
+    /*
     std::cerr << "Success build text: " << texture << std::endl;
 
     float vertices[] = {
@@ -160,8 +159,8 @@ int main(){
     unsigned int indices[] = {  
         0, 1, 3, // first triangle
         1, 2, 3  // second triangle
-    }; 
-
+    }; */
+    /*
     GLuint VAO, VBO, EBO;
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
@@ -181,15 +180,47 @@ int main(){
     // texture coord attribute
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
     glEnableVertexAttribArray(1);
-    std::string v = readGLSLFile("../test1.glsl");
+    */
+    GLuint testtexture;
+    glBindTexture(GL_TEXTURE_2D, testtexture);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, outputWidth, outputHeight, 0, GL_RGBA, GL_FLOAT, nullptr);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glBindTexture(GL_TEXTURE_2D, 0);
+    glBindImageTexture(1, testtexture, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA32F);
+    /*
+    glGenTextures(1, &testtexture);
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, testtexture);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR); // Linear interpolation when magnifying
+    */
+    //std::string v = readGLSLFile("../test1.glsl");
     std::string f = readGLSLFile("../easu.glsl");
+    const char *source_c_str = f.c_str();
+    GLuint computeShader;
+    computeShader = glCreateShader(GL_COMPUTE_SHADER);
+    glShaderSource(computeShader, 1, &source_c_str, NULL);
+    glCompileShader(computeShader);
+    GLint status;
+glGetShaderiv(computeShader, GL_COMPILE_STATUS, &status);
+if (status != GL_TRUE) {
+    char buffer[512];
+    glGetShaderInfoLog(computeShader, 512, NULL, buffer);
+    std::cerr << "Shader compilation failed: " << buffer << std::endl;
+}
+    GLuint program;
+    program = glCreateProgram();
+    glAttachShader(program, computeShader);
+    glLinkProgram(program);
     //std::cerr << v << std::endl;
-    GLuint program1 = createShaderProgram(v, f);
+    //GLuint program1 = createShaderProgram(v, f);
     GLint success;
-    glGetProgramiv(program1, GL_LINK_STATUS, &success);
+    glGetProgramiv(program, GL_LINK_STATUS, &success);
     if (!success) {
         GLchar infoLog[512];
-        glGetProgramInfoLog(program1, 512, NULL, infoLog);
+        glGetProgramInfoLog(program, 512, NULL, infoLog);
         std::cout << "ERROR::PROGRAM::LINKING_FAILED\n" << infoLog << std::endl;
     }/*
     while (!glfwWindowShouldClose(window)) // Loop until user closes the window
@@ -207,20 +238,19 @@ int main(){
 
         // Checks if any events are triggered (like keyboard input or mouse movement events)
     }*/
-    glUseProgram(program1);
+    glUseProgram(program);
 
-    glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, texture);
-    GLint inputTexLoc = glGetUniformLocation(program1, "u_InputTexture");
+    GLint inputTexLoc = glGetUniformLocation(program, "u_InputTexture");
     glUniform1i(inputTexLoc, 0);
-    GLint widthLoc = glGetUniformLocation(program1, "u_DisplayWidth");
-    GLint heightLoc = glGetUniformLocation(program1, "u_DisplayHeight");
+    GLint widthLoc = glGetUniformLocation(program, "u_DisplayWidth");
+    GLint heightLoc = glGetUniformLocation(program, "u_DisplayHeight");
     glUniform1i(widthLoc, outputWidth); // Replace displayWidth and displayHeight with your values
     glUniform1i(heightLoc, outputHeight);
-    GLint con0Loc = glGetUniformLocation(program1, "u_Con0");
-    GLint con1Loc = glGetUniformLocation(program1, "u_Con1");
-    GLint con2Loc = glGetUniformLocation(program1, "u_Con2");
-    GLint con3Loc = glGetUniformLocation(program1, "u_Con3");
+    GLint con0Loc = glGetUniformLocation(program, "u_Con0");
+    GLint con1Loc = glGetUniformLocation(program, "u_Con1");
+    GLint con2Loc = glGetUniformLocation(program, "u_Con2");
+    GLint con3Loc = glGetUniformLocation(program, "u_Con3");
     glm::vec4 Con0 = {width * 1.0 / outputWidth, height * 1.0 / outputHeight, 0.5 * width / outputWidth - 0.5, 0.5 * height / outputHeight - 0.5};
     glm::vec4 Con1 = {1.0 / width, 1.0 / height, 1.0 * 1.0 / width, -1.0 * 1.0 / height};
     glm::vec4 Con2 = {-1.0 * 1.0 / width, 2.0 * 1.0 / height, 1.0 * 1.0 / width, 2.0 * 1.0 / height};
@@ -229,34 +259,77 @@ int main(){
     glUniform4fv(con1Loc, 1, glm::value_ptr(Con1));
     glUniform4fv(con2Loc, 1, glm::value_ptr(Con2));
     glUniform4fv(con3Loc, 1, glm::value_ptr(Con3));
+    glBindTexture(GL_TEXTURE_2D, 0);
+
     GLuint outputTex;
+    /*
     glGenTextures(1, &outputTex);
+    glActiveTexture(GL_TEXTURE2);
+    glBindTexture(GL_TEXTURE_2D, outputTex);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, outputWidth, outputHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR); // Linear interpolation when magnifying
+    */
+    
     glBindTexture(GL_TEXTURE_2D, outputTex);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, outputWidth, outputHeight, 0, GL_RGBA, GL_FLOAT, nullptr);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glBindTexture(GL_TEXTURE_2D, 0);
     glBindImageTexture(0, outputTex, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA32F);
-
+    
     //glBindTexture(GL_TEXTURE_2D, 0);
     //glBindImageTexture(0, outputTex, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA32F);
-    GLint outputTexLoc = glGetUniformLocation(program1, "u_OutputEASUTexture");
+    GLint outputTexLoc = glGetUniformLocation(program, "u_OutputEASUTexture");
     glUniform1i(outputTexLoc, 0);
-    GLuint framebuffer;
     
+   
+    GLint testinputTexLoc = glGetUniformLocation(program, "u_testTexture");
+    glUniform1i(testinputTexLoc, 1);
+    glActiveTexture(GL_TEXTURE0);
+
+    glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+    glDispatchCompute(outputWidth/32, outputHeight/32, 1);
+    glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
+    std::cout << "Dispatching compute shader with " << outputWidth/32 << "x" << outputHeight/32 << " work groups" << std::endl;
+    float* pixels = new float[outputWidth * outputHeight * 4];
+    glBindTexture(GL_TEXTURE_2D, testtexture);
+// 创建一个缓冲区来存储纹理的数据
+
+    std::vector<float> pixels1(outputWidth * outputHeight * 4);  // 这里我们假设纹理是RGBA格式的
+    glBindTexture(GL_TEXTURE_2D, testtexture);
+// 使用glGetTexImage来获取纹理的数据
+    glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_FLOAT, pixels1.data());
+    for(size_t i = 0; i < pixels1.size(); i += 4)  // 假设纹理是RGBA格式的
+    {   
+    // 打印每个像素的RGBA值
+        std::cout << "Pixel " << i/4 << ": "
+              << "R = " << static_cast<float>(pixels[i]) << ", "
+              << "G = " << static_cast<float>(pixels[i+1]) << ", "
+              << "B = " << static_cast<float>(pixels[i+2]) << ", "
+              << "A = " << static_cast<float>(pixels[i+3])
+              << std::endl;
+
+    }    
+    
+glBindTexture(GL_TEXTURE_2D, 0);
+stbi_write_png("output1.png", outputWidth, outputHeight, 4, pixels, outputWidth * 4 * sizeof(float));
+delete[] pixels;
+/*
+    GLuint framebuffer;
     glGenFramebuffers(1, &framebuffer);
     glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, outputTex, 0);
+    glViewport(0, 0, outputWidth, outputHeight);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+    glBindVertexArray(0);
 
-    glBegin(GL_QUADS);
-    glTexCoord2f(0.0, 0.0); glVertex3f(-1.0, -1.0, 0);
-    glTexCoord2f(1.0, 0.0); glVertex3f(1.0, -1.0, 0);
-    glTexCoord2f(1.0, 1.0); glVertex3f(1.0, 1.0, 0);
-    glTexCoord2f(0.0, 1.0); glVertex3f(-1.0, 1.0, 0);
-    glEnd();
     std::vector<unsigned char> outputDataChar(outputWidth * outputHeight * 4);
     glReadPixels(0, 0, width, height, GL_RGBA, GL_FLOAT, outputDataChar.data());
     for(int i = 0; i < outputDataChar.size(); i++) {
         outputDataChar[i] = static_cast<unsigned char>(outputDataChar[i] * 255.0f);
+        //std::cout << outputDataChar[i] << std::endl;
     }
     if(!stbi_write_png("output.png", outputWidth, outputHeight, 4, outputDataChar.data(), outputWidth * 4)) {
     std::cerr << "Failed to save PNG image\n";
