@@ -1,10 +1,12 @@
 #version 430 core
 #pragma optionNV (unroll all)	
 #define LOCAL_GROUP_SIZE 32
+#extension GL_ARB_compute_shader: enable
+#extension GL_ARB_shader_image_load_store: enable
 // This is set at the limit of providing unnatural results for sharpening.
 #define FSR_RCAS_LIMIT (0.25 - (1.0 / 16.0))
 layout (local_size_x = LOCAL_GROUP_SIZE, local_size_y = LOCAL_GROUP_SIZE) in;
-layout (rgba32f, binding = 1) uniform writeonly image2D u_OutputRCASImage;
+layout (rgba32f, binding = 3) uniform writeonly image2D u_OutputRCASImage;
 
 uniform sampler2D u_RASUTexture;
 uniform vec4 u_Con0;

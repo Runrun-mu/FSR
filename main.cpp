@@ -300,7 +300,7 @@ if (status != GL_TRUE) {
     glBindTexture(GL_TEXTURE_2D, testtexture);
 // 使用glGetTexImage来获取纹理的数据
     glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_FLOAT, pixels1.data());
-    for(size_t i = 0; i < pixels1.size(); i += 4)  // 假设纹理是RGBA格式的
+    for(size_t i = 0; i < 100; i += 4)  // 假设纹理是RGBA格式的
     {   
     // 打印每个像素的RGBA值
         std::cout << "Pixel " << i/4 << ": "

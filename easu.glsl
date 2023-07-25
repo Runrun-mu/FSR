@@ -216,5 +216,6 @@ void main()
 	ivec2 FragPos = ivec2(gl_GlobalInvocationID.xy);
 	vec4 pixelValue = imageLoad(u_InputImage, FragPos);
 	imageStore(u_testTexture, FragPos, pixelValue);  // 假设你已经定义了一个用于调试的纹理debugTexture
-	imageStore(u_OutputEASUTexture, FragPos, test(FragPos));
+	vec4 color = texelFetch(u_InputTexture, FragPos, 0);
+	imageStore(u_OutputEASUTexture, FragPos, vec4(fsrEasuF(FragPos), 1));
 }

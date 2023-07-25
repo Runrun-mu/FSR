@@ -32,7 +32,7 @@ int main(){
 
     int scale = 2;
     int width, height, channels;
-    float* data = stbi_loadf("../1.jpg", &width, &height, &channels, STBI_rgb_alpha);
+    unsigned char* data = stbi_load("../1.jpg", &width, &height, &channels, STBI_rgb_alpha);
     int outputWidth = width * scale;
     int outputHeight = height * scale;
     if (data == NULL) {
@@ -57,11 +57,11 @@ int main(){
     GLuint texture;
     glGenTextures(1, &texture);
     glBindTexture(GL_TEXTURE_2D, texture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_FLOAT, data);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR); // Linear interpolation when magnifying
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE); // Clamp to edge of texture
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE); // Clamp to edge of texture
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT); // Clamp to edge of texture
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT); // Clamp to edge of texture
     glGenerateMipmap(GL_TEXTURE_2D);
     glBindTexture(GL_TEXTURE_2D, 0);
     glBindImageTexture(2, texture, 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA32F);
@@ -75,7 +75,6 @@ int main(){
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE); // Clamp to edge of texture
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE); // Clamp to edge of texture
-    glGenerateMipmap(GL_TEXTURE_2D);
     glBindTexture(GL_TEXTURE_2D, 0);
     glBindImageTexture(1, testtexture, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA32F);
 
@@ -87,9 +86,19 @@ int main(){
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE); // Clamp to edge of texture
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE); // Clamp to edge of texture
-    glGenerateMipmap(GL_TEXTURE_2D);
     glBindTexture(GL_TEXTURE_2D, 0);
     glBindImageTexture(0, outputTex, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA32F);
+
+    GLuint result;
+    glGenTextures(1, &result);
+    glBindTexture(GL_TEXTURE_2D, result);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, outputWidth, outputHeight, 0, GL_RGBA, GL_FLOAT, nullptr);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE); // Clamp to edge of texture
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE); // Clamp to edge of texture
+    glBindTexture(GL_TEXTURE_2D, 0);
+    glBindImageTexture(3, result, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA32F);
 
     std::string f = readGLSLFile("../easu.glsl");
     const char *source_c_str = f.c_str();
@@ -125,11 +134,11 @@ int main(){
     glUniform1i(inputTexLoc, 2);
     glBindTexture(GL_TEXTURE_2D, 0);
     
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, texture);
+    glActiveTexture(GL_TEXTURE4);
     GLint samplerLoc = glGetUniformLocation(program, "u_InputTexture");
-    glUniform1i(samplerLoc, 0);
-    glBindTexture(GL_TEXTURE_2D, 0);
+    glUniform1i(samplerLoc, 4);
+    glBindTexture(GL_TEXTURE_2D, texture);
+    //glBindTexture(GL_TEXTURE_2D, 0);
 
     GLint widthLoc = glGetUniformLocation(program, "u_DisplayWidth");
     GLint heightLoc = glGetUniformLocation(program, "u_DisplayHeight");
@@ -164,21 +173,64 @@ int main(){
     glDispatchCompute(outputWidth/32, outputHeight/32, 1);
     glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
 
-    std::vector<float> pixels1(outputWidth * outputHeight * 4);
+    std::string f1 = readGLSLFile("../rcas.glsl");
+    const char *source_c_str1 = f1.c_str();
+    std::cerr << source_c_str1 << std::endl;
+    GLuint computeShader1;
+    computeShader1 = glCreateShader(GL_COMPUTE_SHADER);
+    glShaderSource(computeShader1, 1, &source_c_str1, NULL);
+    glCompileShader(computeShader1);
+
+    GLint status1;
+    glGetShaderiv(computeShader1, GL_COMPILE_STATUS, &status1);
+    if (status1 != GL_TRUE) {
+        char buffer[512];
+        glGetShaderInfoLog(computeShader1, 512, NULL, buffer);
+        std::cerr << "Shader compilation failed: " << buffer << std::endl;
+    }
+
+    GLuint program1;
+    program1 = glCreateProgram();
+    glAttachShader(program1, computeShader1);
+    glLinkProgram(program1);
+
+    GLint success1;
+    glGetProgramiv(program1, GL_LINK_STATUS, &success1);
+    if (!success1) {
+        GLchar infoLog[512];
+        glGetProgramInfoLog(program1, 512, NULL, infoLog);
+        std::cout << "ERROR::PROGRAM::LINKING_FAILED\n" << infoLog << std::endl;
+    }
+
+    glUseProgram(program1);
+
+    glActiveTexture(GL_TEXTURE4);
+    GLint samplerLoc1 = glGetUniformLocation(program1, "u_RASUTexture");
+    glUniform1i(samplerLoc1, 4);
     glBindTexture(GL_TEXTURE_2D, outputTex);
-    glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_FLOAT, pixels1.data());
 
-    for(size_t i = 0; i < pixels1.size(); i += 4)  // 假设纹理是RGBA格式的
-    {   
-    // 打印每个像素的RGBA值
-            std::cout << "Pixel " << i/4 << ": "
-              << "R = " << static_cast<float>(pixels1[i]) << ", "
-              << "G = " << static_cast<float>(pixels1[i+1]) << ", "
-              << "B = " << static_cast<float>(pixels1[i+2]) << ", "
-              << "A = " << static_cast<float>(pixels1[i+3])
-              << std::endl;
+    glBindImageTexture(3, result, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA32F);
+    GLint inputTexLoc1 = glGetUniformLocation(program1, "u_OutputRCASImage");
+    glUniform1i(inputTexLoc1, 3);
 
-    }   
+    GLint con0Loc1 = glGetUniformLocation(program1, "u_Con0");
+    glUniform4fv(con0Loc1, 1, glm::value_ptr(Con0)); // Replace con0 to con3 with your values
+
+    GLenum err1;
+    while((err1 = glGetError()) != GL_NO_ERROR) {
+        std::cout << "OpenGL error: " << err1 << std::endl;
+    }
+
+    glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+    glDispatchCompute(outputWidth/32, outputHeight/32, 1);
+    glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
+
+    std::vector<float> pixels1(outputWidth * outputHeight * 4);
+    glBindTexture(GL_TEXTURE_2D, result);
+
+    glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels1.data());
+
+stbi_write_png("output.png", outputWidth, outputHeight, 4, pixels1.data(), outputWidth * 4);
 
     glBindTexture(GL_TEXTURE_2D, 0);
     //stbi_write_png("output1.png", outputWidth, outputHeight, 4, pixels1, outputWidth * 4 * sizeof(float));
