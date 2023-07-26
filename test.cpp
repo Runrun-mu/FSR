@@ -67,17 +67,6 @@ int main(){
     glBindImageTexture(2, texture, 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA32F);
     stbi_image_free(data);
 
-    GLuint testtexture;
-    glGenTextures(1, &testtexture);
-    glBindTexture(GL_TEXTURE_2D, testtexture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, outputWidth, outputHeight, 0, GL_RGBA, GL_FLOAT, nullptr);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE); // Clamp to edge of texture
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE); // Clamp to edge of texture
-    glBindTexture(GL_TEXTURE_2D, 0);
-    glBindImageTexture(1, testtexture, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA32F);
-
     GLuint outputTex;
     glGenTextures(1, &outputTex);
     glBindTexture(GL_TEXTURE_2D, outputTex);
@@ -128,11 +117,6 @@ int main(){
         std::cout << "ERROR::PROGRAM::LINKING_FAILED\n" << infoLog << std::endl;
     }
     glUseProgram(program);
-
-    glBindTexture(GL_TEXTURE_2D, texture);
-    GLint inputTexLoc = glGetUniformLocation(program, "u_InputImage");
-    glUniform1i(inputTexLoc, 2);
-    glBindTexture(GL_TEXTURE_2D, 0);
     
     glActiveTexture(GL_TEXTURE4);
     GLint samplerLoc = glGetUniformLocation(program, "u_InputTexture");
@@ -160,9 +144,6 @@ int main(){
 
     GLint outputTexLoc = glGetUniformLocation(program, "u_OutputEASUTexture");
     glUniform1i(outputTexLoc, 0);
-
-    GLint testinputTexLoc = glGetUniformLocation(program, "u_testTexture");
-    glUniform1i(testinputTexLoc, 1);
 
     GLenum err;
     while((err = glGetError()) != GL_NO_ERROR) {
@@ -230,7 +211,7 @@ int main(){
 
     glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels1.data());
 
-stbi_write_png("output.png", outputWidth, outputHeight, 4, pixels1.data(), outputWidth * 4);
+    stbi_write_png("output.png", outputWidth, outputHeight, 4, pixels1.data(), outputWidth * 4);
 
     glBindTexture(GL_TEXTURE_2D, 0);
     //stbi_write_png("output1.png", outputWidth, outputHeight, 4, pixels1, outputWidth * 4 * sizeof(float));

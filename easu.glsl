@@ -6,8 +6,6 @@
 
 layout(local_size_x = LOCAL_GROUP_SIZE, local_size_y = LOCAL_GROUP_SIZE) in;
 layout(rgba32f, binding = 0) uniform writeonly image2D u_OutputEASUTexture;
-layout(rgba32f, binding = 1) uniform writeonly image2D u_testTexture;
-layout(rgba32f, binding = 2) uniform readonly image2D u_InputImage;
 
 uniform sampler2D u_InputTexture;
 uniform int u_DisplayWidth;
@@ -214,8 +212,5 @@ vec4 test(ivec2 ip){
 void main()
 {
 	ivec2 FragPos = ivec2(gl_GlobalInvocationID.xy);
-	vec4 pixelValue = imageLoad(u_InputImage, FragPos);
-	imageStore(u_testTexture, FragPos, pixelValue);  // 假设你已经定义了一个用于调试的纹理debugTexture
-	vec4 color = texelFetch(u_InputTexture, FragPos, 0);
 	imageStore(u_OutputEASUTexture, FragPos, vec4(fsrEasuF(FragPos), 1));
 }
