@@ -8,6 +8,7 @@
 #include <glad/glad.h>
 #define GLFW_DLL
 #include <GLFW/glfw3.h>
+
 #include "external/stb_image.h"
 #include "external/std_image_write.h"
 

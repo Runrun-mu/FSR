@@ -33,6 +33,7 @@ class texture{
         GLint textureUnit;
         GLint imageUnit;
         GLuint textureID;
+        GLenum readType;
         unsigned char* data;
     texture():internalFormat(GL_RGBA), 
             externalFormat(GL_RGBA), 
@@ -46,6 +47,7 @@ class texture{
             textureUnit(0), 
             imageUnit(0), 
             textureID(0), 
+            readType(GL_READ_ONLY),
             data(nullptr){}
     ~texture(){
         glActiveTexture(GL_TEXTURE0 + textureUnit);
@@ -67,5 +69,6 @@ class texture{
     void    setTextureUnit(GLint unit);
     void    setImageUnit(GLint unit);
     void    setData(unsigned char* data);
+    void    setReadType(GLenum type);
     void    buildTexture();
 };

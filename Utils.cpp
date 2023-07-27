@@ -1,6 +1,10 @@
 
 #include "Utils.hpp"
+#define STB_IMAGE_IMPLEMENTATION
+#include "external/stb_image.h"
 
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#include "external/std_image_write.h"
 using namespace std;
 
 GLFWwindow* initWindows(const string& name, int major, int minor, int width, int height)

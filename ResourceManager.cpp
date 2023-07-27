@@ -1,4 +1,7 @@
 #include "ResourceManager.hpp"
+#include "Utils.hpp"
+#include "external/stb_image.h"
+#include "external/std_image_write.h"
 
 using namespace std;
 
@@ -51,6 +54,9 @@ void texture::setImageUnit(GLint unit){
 void texture::setData(unsigned char* d){
     data = d;
 }
+void texture::setReadType(GLenum type){
+    readType = type;
+}
 
 void texture::buildTexture(){
     glGenTextures(1, &textureID);
@@ -62,6 +68,6 @@ void texture::buildTexture(){
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, typeMinFilter);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, typeMagFilter);
     glGenerateMipmap(GL_TEXTURE_2D);
-    glBindImageTexture(imageUnit, textureID, 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA32F);
+    glBindImageTexture(imageUnit, textureID, 0, GL_FALSE, 0, readType, GL_RGBA32F);
     if(!data) stbi_image_free(data);
 }

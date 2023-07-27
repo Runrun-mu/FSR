@@ -144,6 +144,7 @@ int main(){
 
     GLint outputTexLoc = glGetUniformLocation(program, "u_OutputEASUTexture");
     glUniform1i(outputTexLoc, 0);
+        std::cout << "asqwedasd" << outputTexLoc << con0Loc<< std::endl;
 
     GLenum err;
     while((err = glGetError()) != GL_NO_ERROR) {

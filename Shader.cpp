@@ -3,7 +3,7 @@
 using namespace std;
 
 void shader::setShaderType(GLenum type, string source){
-    if(shaderMap.count(type)){
+    if(!shaderMap.count(type)){
         shaderMap[type] = 0;
         shaderSource[type] = source;
     }
@@ -13,8 +13,9 @@ void shader::setShaderType(GLenum type, string source){
 }
 
 void shader::createShader(){
-    for(auto shader : shaderMap){
+    for(auto& shader : shaderMap){
         shader.second = glCreateShader(shader.first);
+        cerr << "shader.first: " << shader.second << endl;
         const char *src = shaderSource[shader.first].c_str();
         glShaderSource(shader.second, 1, &src, nullptr);
         glCompileShader(shader.second);

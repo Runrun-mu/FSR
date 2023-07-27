@@ -212,5 +212,5 @@ vec4 test(ivec2 ip){
 void main()
 {
 	ivec2 FragPos = ivec2(gl_GlobalInvocationID.xy);
-	imageStore(u_OutputEASUTexture, FragPos, vec4(fsrEasuF(FragPos), 1));
+	imageStore(u_OutputEASUTexture, FragPos, vec4(1,1,1,1));
 }
