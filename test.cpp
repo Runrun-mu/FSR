@@ -144,6 +144,7 @@ int main(){
     GLint heightLoc = glGetUniformLocation(program, "u_DisplayHeight");
     glUniform1i(widthLoc, outputWidth); // Replace displayWidth and displayHeight with your values
     glUniform1i(heightLoc, outputHeight);
+    std::cerr << widthLoc << " " << heightLoc << std::endl;
 
     GLint con0Loc = glGetUniformLocation(program, "u_Con0");
     GLint con1Loc = glGetUniformLocation(program, "u_Con1");
@@ -160,6 +161,7 @@ int main(){
 
     GLint outputTexLoc = glGetUniformLocation(program, "u_OutputEASUTexture");
     glUniform1i(outputTexLoc, 0);
+    std::cerr << outputTexLoc << std::endl;
 
     GLint testinputTexLoc = glGetUniformLocation(program, "u_testTexture");
     glUniform1i(testinputTexLoc, 1);
@@ -175,7 +177,7 @@ int main(){
 
     std::string f1 = readGLSLFile("../rcas.glsl");
     const char *source_c_str1 = f1.c_str();
-    std::cerr << source_c_str1 << std::endl;
+    //std::cerr << source_c_str1 << std::endl;
     GLuint computeShader1;
     computeShader1 = glCreateShader(GL_COMPUTE_SHADER);
     glShaderSource(computeShader1, 1, &source_c_str1, NULL);
